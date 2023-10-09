@@ -2,10 +2,14 @@
 
 mod gui;
 
-use geo::{coord, polygon, BooleanOps, Coord, Point, Polygon, Rect, Rotate, Translate};
+use geo::{coord, polygon, Area, BooleanOps, Coord, Point, Polygon, Rect, Rotate, Translate};
 use gui::Gui;
+use optimization::{ArmijoLineSearch, Func, GradientDescent, Minimizer, NumericalDifferentiation};
 
 fn main() -> Result<(), eframe::Error> {
+    let num_points = 8;
+    let max_iterations = 100;
+
     let untrimmed_sofa = Rect::new((-1.0, -0.5), (1.0, 0.5)).to_polygon();
     let hallway = polygon![
         (x: 1.0, y: 1.0),
@@ -15,13 +19,19 @@ fn main() -> Result<(), eframe::Error> {
         (x: -2.0, y: 0.0),
         (x: -2.0, y: 1.0),
     ];
-    let trajectory = vec![
-        coord!(x: -1.0, y: 0.5),
-        coord!(x: 0.5, y: 0.5),
-        coord!(x: 0.5, y: -1.0),
-    ];
 
-    let sofa = trim_sofa(&untrimmed_sofa, &hallway, trajectory.clone());
+    let function = NumericalDifferentiation::new(Func(|x: &[f64]| {
+        let trajectory = make_trajectory(x);
+        let sofa = trim_sofa(&untrimmed_sofa, &hallway, &trajectory);
+        -sofa.unsigned_area()
+    }));
+
+    let minimizer = GradientDescent::new()
+        .line_search(ArmijoLineSearch::new(0.5, 0.1, 0.5))
+        .max_iterations(Some(max_iterations));
+    let solution = minimizer.minimize(&function, vec![0.0; 2 * num_points]);
+    let trajectory = make_trajectory(&solution.position);
+    let sofa = trim_sofa(&untrimmed_sofa, &hallway, &trajectory);
 
     let gui = Gui {
         sofa,
@@ -31,8 +41,21 @@ fn main() -> Result<(), eframe::Error> {
     gui.run()
 }
 
+fn make_trajectory(x: &[f64]) -> Vec<Coord> {
+    assert!(x.len() % 2 == 0);
+    let mut trajectory = vec![];
+
+    trajectory.push(coord!(x: -1.0, y: 0.5));
+    for i in 0..x.len() / 2 {
+        trajectory.push(coord!(x: x[2 * i], y: x[2 * i + 1]));
+    }
+
+    trajectory.push(coord!(x: 0.5, y: -1.0));
+    trajectory
+}
+
 /// Trim the sofa to fit the hallway given a trajectory
-fn trim_sofa(sofa: &Polygon, hallway: &Polygon, trajectory: Vec<Coord>) -> Polygon {
+fn trim_sofa(sofa: &Polygon, hallway: &Polygon, trajectory: &Vec<Coord>) -> Polygon {
     let mut sofa = sofa.clone();
 
     for (i, position) in trajectory.iter().enumerate() {

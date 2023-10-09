@@ -10,7 +10,7 @@ pub struct Gui {
 impl Gui {
     pub fn run(self) -> Result<(), eframe::Error> {
         let options = eframe::NativeOptions {
-            initial_window_size: Some(egui::vec2(1280.0, 720.0)),
+            initial_window_size: Some(egui::vec2(1020.0, 1050.0)),
             ..Default::default()
         };
 
@@ -23,12 +23,12 @@ impl Gui {
 
     fn update_sofa(&self, ui: &mut Ui, step: usize) {
         let (response, p) = ui.allocate_painter(
-            egui::Vec2::new(700.0, 700.0),
+            egui::Vec2::new(1000.0, 1000.0),
             egui::Sense::focusable_noninteractive(),
         );
         let rect = response.rect;
 
-        let scale = 150.0;
+        let scale = 125.0;
         let view_transform = AffineTransform::identity()
             .translated(rect.center().x as f64, rect.center().y as f64)
             .scaled(scale, -scale, (0.0, 0.0));

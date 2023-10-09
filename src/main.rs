@@ -7,27 +7,28 @@ use gui::Gui;
 use optimization::{ArmijoLineSearch, Func, GradientDescent, Minimizer, NumericalDifferentiation};
 
 fn main() -> Result<(), eframe::Error> {
-    let num_points = 8;
+    let num_points = 4;
     let max_iterations = 100;
 
-    let untrimmed_sofa = Rect::new((-1.0, -0.5), (1.0, 0.5)).to_polygon();
+    let untrimmed_sofa = Rect::new((-2.0, -0.5), (2.0, 0.5)).to_polygon();
     let hallway = polygon![
         (x: 1.0, y: 1.0),
-        (x: 1.0, y: -2.0),
-        (x: 0.0, y: -2.0),
+        (x: 1.0, y: -4.0),
+        (x: 0.0, y: -4.0),
         (x: 0.0, y: 0.0),
-        (x: -2.0, y: 0.0),
-        (x: -2.0, y: 1.0),
+        (x: -4.0, y: 0.0),
+        (x: -4.0, y: 1.0),
     ];
 
     let function = NumericalDifferentiation::new(Func(|x: &[f64]| {
         let trajectory = make_trajectory(x);
+        println!("{:?}", trajectory);
         let sofa = trim_sofa(&untrimmed_sofa, &hallway, &trajectory);
         -sofa.unsigned_area()
     }));
 
     let minimizer = GradientDescent::new()
-        .line_search(ArmijoLineSearch::new(0.5, 0.1, 0.5))
+        .line_search(ArmijoLineSearch::new(0.5, 0.01, 0.5))
         .max_iterations(Some(max_iterations));
     let solution = minimizer.minimize(&function, vec![0.0; 2 * num_points]);
     let trajectory = make_trajectory(&solution.position);
@@ -45,12 +46,15 @@ fn make_trajectory(x: &[f64]) -> Vec<Coord> {
     assert!(x.len() % 2 == 0);
     let mut trajectory = vec![];
 
-    trajectory.push(coord!(x: -1.0, y: 0.5));
+    trajectory.push(coord!(x: -2.0, y: 0.5));
     for i in 0..x.len() / 2 {
-        trajectory.push(coord!(x: x[2 * i], y: x[2 * i + 1]));
+        let mut coord = coord!(x: x[2 * i], y: x[2 * i + 1]);
+        coord.x = coord.x.clamp(-1.0, 1.0);
+        coord.y = coord.y.clamp(-1.0, 1.0);
+        trajectory.push(coord);
     }
 
-    trajectory.push(coord!(x: 0.5, y: -1.0));
+    trajectory.push(coord!(x: 0.5, y: -2.0));
     trajectory
 }
 

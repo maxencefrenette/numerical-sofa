@@ -22,7 +22,6 @@ fn main() -> Result<(), eframe::Error> {
 
     let function = NumericalDifferentiation::new(Func(|x: &[f64]| {
         let trajectory = make_trajectory(x);
-        println!("{:?}", trajectory);
         let sofa = trim_sofa(&untrimmed_sofa, &hallway, &trajectory);
         -sofa.unsigned_area()
     }));

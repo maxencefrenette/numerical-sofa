@@ -2,7 +2,7 @@
 
 mod gui;
 
-use geo::{polygon, Rect};
+use geo::{coord, polygon, Rect};
 use gui::Gui;
 
 fn main() -> Result<(), eframe::Error> {
@@ -15,11 +15,16 @@ fn main() -> Result<(), eframe::Error> {
         (x: -2.0, y: 0.0),
         (x: -2.0, y: 1.0),
     ];
+    let sofa_positions = vec![
+        coord!(x: -1.0, y: 0.5),
+        coord!(x: 0.5, y: 0.5),
+        coord!(x: 0.5, y: -1.0),
+    ];
 
     let gui = Gui {
         sofa,
         hallway,
-        sofa_start: (-1.0, 0.5).into(),
+        sofa_positions,
     };
     gui.run()
 }

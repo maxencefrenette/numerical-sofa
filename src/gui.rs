@@ -1,10 +1,10 @@
 use eframe::egui::{self, Pos2};
-use geo::{AffineOps, AffineTransform, Coord, Polygon, Translate};
+use geo::{AffineOps, AffineTransform, Coord, Point, Polygon, Rotate, Translate};
 
 pub struct Gui {
     pub sofa: Polygon<f64>,
     pub hallway: Polygon<f64>,
-    pub sofa_start: Coord,
+    pub sofa_positions: Vec<Coord>,
 }
 
 impl Gui {
@@ -28,7 +28,9 @@ impl eframe::App for Gui {
             ui.style_mut().spacing.slider_width = 700.0;
 
             let mut step = 0;
-            ui.add(egui::Slider::new(&mut step, 0..=10).show_value(false));
+            ui.add(
+                egui::Slider::new(&mut step, 0..=(self.sofa_positions.len() - 1)).show_value(false),
+            );
 
             let (response, p) = ui.allocate_painter(
                 egui::Vec2::new(700.0, 700.0),
@@ -56,9 +58,12 @@ impl eframe::App for Gui {
             ));
 
             // draw sofa
+            let sofa_position = self.sofa_positions[step];
+            let sofa_rotation = -90.0 * (step as f64) / (self.sofa_positions.len() as f64 - 1.0);
             p.add(egui::Shape::closed_line(
                 self.sofa
-                    .translate(self.sofa_start.x, self.sofa_start.y)
+                    .rotate_around_point(sofa_rotation, Point::new(0.0, 0.0))
+                    .translate(sofa_position.x, sofa_position.y)
                     .affine_transform(&view_transform)
                     .exterior()
                     .coords()

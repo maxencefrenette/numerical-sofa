@@ -25,22 +25,21 @@ impl Gui {
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            let scale = 150.0;
-            let padding = 0.2 * scale;
-            let view_transform = AffineTransform::translate(
-                2.0 * scale + padding,
-                1.0 * scale + padding,
-            )
-            .scaled(scale, -scale, (0.0, 0.0));
+            ui.heading("Numerical Sofa Results Viewer");
 
-            let p = ui.painter();
+            let (response, p) = ui.allocate_painter(
+                egui::Vec2::new(700.0, 700.0),
+                egui::Sense::focusable_noninteractive(),
+            );
+            let rect = response.rect;
+
+            let scale = 150.0;
+            let view_transform = AffineTransform::identity()
+                .translated(rect.center().x as f64, rect.center().y as f64)
+                .scaled(scale, -scale, (0.0, 0.0));
 
             // Make background white
-            p.rect_filled(
-                egui::Rect::from_min_size(Pos2::ZERO, ui.available_size()),
-                0.0,
-                egui::Color32::WHITE,
-            );
+            p.rect_filled(rect, 0.0, egui::Color32::WHITE);
 
             // draw hallway
             p.add(egui::Shape::closed_line(

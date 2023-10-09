@@ -4,7 +4,7 @@ use geo::{AffineOps, AffineTransform, Coord, Point, Polygon, Rotate, Translate};
 pub struct Gui {
     pub sofa: Polygon<f64>,
     pub hallway: Polygon<f64>,
-    pub sofa_positions: Vec<Coord>,
+    pub trajectory: Vec<Coord>,
 }
 
 impl Gui {
@@ -28,9 +28,7 @@ impl eframe::App for Gui {
             ui.style_mut().spacing.slider_width = 700.0;
 
             let mut step = 0;
-            ui.add(
-                egui::Slider::new(&mut step, 0..=(self.sofa_positions.len() - 1)).show_value(false),
-            );
+            ui.add(egui::Slider::new(&mut step, 0..=(self.trajectory.len() - 1)).show_value(false));
 
             let (response, p) = ui.allocate_painter(
                 egui::Vec2::new(700.0, 700.0),
@@ -58,8 +56,8 @@ impl eframe::App for Gui {
             ));
 
             // draw sofa
-            let sofa_position = self.sofa_positions[step];
-            let sofa_rotation = -90.0 * (step as f64) / (self.sofa_positions.len() as f64 - 1.0);
+            let sofa_position = self.trajectory[step];
+            let sofa_rotation = -90.0 * (step as f64) / (self.trajectory.len() as f64 - 1.0);
             p.add(egui::Shape::closed_line(
                 self.sofa
                     .rotate_around_point(sofa_rotation, Point::new(0.0, 0.0))

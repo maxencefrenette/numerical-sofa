@@ -25,7 +25,10 @@ impl Gui {
 impl eframe::App for Gui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Numerical Sofa Results Viewer");
+            ui.style_mut().spacing.slider_width = 700.0;
+
+            let mut step = 0;
+            ui.add(egui::Slider::new(&mut step, 0..=10).show_value(false));
 
             let (response, p) = ui.allocate_painter(
                 egui::Vec2::new(700.0, 700.0),
